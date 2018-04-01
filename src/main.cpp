@@ -365,9 +365,6 @@ int main() {
                   best_state = new_state;
                 }
             }
-            lane = car_lane + lane_direction[best_state];
-            state = best_state;
-            cout << "new car state " << best_state << " and lane " << lane << endl; 
 //            choose_next_state(car, vehicles, succ_states);
             // check if car in my lane
             for (int i = 0; i < sensor_fusion.size(); i++) {
@@ -384,9 +381,6 @@ int main() {
                 }
               }
             }
-            // check trajectory for keeping lane, left change, right change
-            // left change check if already not in left most lane, similarly on the right
-            // write methods for get vechiles ahead in each of the interested lane
             if (too_close) {
               ref_val -= .224;
             } 
@@ -396,6 +390,9 @@ int main() {
             cout << "too close and ref val " << too_close << "\t" << ref_val << "\t" << MAX_SPEED;
 
 
+            lane = car_lane + lane_direction[best_state];
+            state = best_state;
+            cout << "new car state " << best_state << " and lane " << lane << endl; 
 
 
             vector<double> ptsx;
