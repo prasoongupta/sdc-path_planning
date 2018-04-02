@@ -172,11 +172,11 @@ struct vehicle {
 };
 
 const float MAX_SPEED = 49.5;
+// Weights for different cost functions
 const float EFFICIENCY = 10;
 const float COLLISION = 100;
 const float LANE_CHANGE = 1;
 const float BUFFER = 2;
-vector<float> weight_list = {EFFICIENCY, COLLISION, LANE_CHANGE};
 
   
 int main() {
@@ -278,9 +278,8 @@ int main() {
               car_s = end_path_s; 
               car_d = end_path_d;
             }
-            float lane_changing = 0;
             int car_lane = (car_d)/4;
-            cout << "car lane and car d" << current_car_lane << "\t" << car_lane << "\t" << current_d << "\t" << car_d << endl;
+            float lane_changing = 0; // calculating lane changing mode to factor this in changing costs
             if ((current_car_lane != lane ) || (fabs((car_lane*4 + 2 ) - current_d)>1) ) {
               lane_changing = 1;
             }
@@ -301,7 +300,7 @@ int main() {
             car.lane = car_d / 4;
 
             vector<vehicle> vehicles(sensor_fusion.size());
-
+            // creating a vector of vehicles
             for (int i = 0; i < sensor_fusion.size(); i++) {
               double d = sensor_fusion[i][6];
               double vx = sensor_fusion[i][3];
@@ -316,6 +315,7 @@ int main() {
             }
             string best_state = "KL";
             float min_cost = 100;
+            // checking to see which state has least cost - lane keeping, lane change left or right
             for (auto new_state : succ_states) {
               float collision_cost = 0;
               float lane_change_cost = 0;
@@ -357,9 +357,8 @@ int main() {
                 state_change_cost = 5;
               if (new_state != "KL") 
                 buffer_cost = fmax((90 - dist_behind)/dist_behind,0.0);
-              float total_cost = buffer_cost *BUFFER + efficiency_cost * EFFICIENCY + 
-                + state_change_cost + collision_cost*COLLISION + lane_change_cost * LANE_CHANGE;
-              cout << "ln cng: " << lane_changing << " " << state <<" new st " << new_state << " spd  " << lane_speed << " buf" << buffer_cost << "stcost " << state_change_cost << " totcost " << total_cost << endl;
+                float total_cost = buffer_cost *BUFFER + efficiency_cost * EFFICIENCY + 
+                  + state_change_cost + collision_cost*COLLISION + lane_change_cost * LANE_CHANGE;
                 if (total_cost < min_cost) {
                   min_cost = total_cost;
                   best_state = new_state;
@@ -368,8 +367,6 @@ int main() {
             lane = car_lane + lane_direction[best_state];
             state = best_state;
             cout << "new car state " << best_state << " and lane " << lane << endl; 
-//            choose_next_state(car, vehicles, succ_states);
-            // check if car in my lane
             for (int i = 0; i < sensor_fusion.size(); i++) {
               double d = sensor_fusion[i][6];
               if (d > lane * 4 && d < (lane+1) * 4) {
@@ -384,19 +381,12 @@ int main() {
                 }
               }
             }
-            // check trajectory for keeping lane, left change, right change
-            // left change check if already not in left most lane, similarly on the right
-            // write methods for get vechiles ahead in each of the interested lane
             if (too_close) {
               ref_val -= .224;
             } 
             else if (ref_val < MAX_SPEED) {
               ref_val += .224;
             }
-            cout << "too close and ref val " << too_close << "\t" << ref_val << "\t" << MAX_SPEED;
-
-
-
 
             vector<double> ptsx;
             vector<double> ptsy;
@@ -449,18 +439,6 @@ int main() {
 
             double dist_inc = .5;
             double angle = ref_yaw;
-            /*
-            for (int i = 0; i < 50 - prev_size; i++) {
-              //double angle = ref_yaw + (i+1)*pi()/100.0;
-              //cout << angle << endl; 
-              double dist_i = dist_inc * (i + 1);
-              next_x_vals.push_back(ref_x+(dist_i)*cos(angle));
-              next_y_vals.push_back(ref_y+(dist_i)*sin(angle));
-              ref_x += dist_i*cos(angle);
-              ref_y += dist_i*sin(angle);
-            }
-            */
-            
             // add any previous points 
             for (int i = 0; i < prev_size; i++) {
               next_x_vals.push_back(previous_path_x[i]);
@@ -473,13 +451,6 @@ int main() {
 
             
             for (int i = 0; i < 50 - prev_size; i++) {
-             /* if (too_close) {
-                ref_val -= .224;
-              } 
-              else if (ref_val < 49.5) {
-                ref_val += .224;
-              }
-              */
               double N = target_dist/(ref_val * .02 / 2.24) ;
               double x_point = x_add + (target_x) / N;
               double y_point = s(x_point); 
@@ -498,21 +469,6 @@ int main() {
             }
 
 
-
-            /*
-
-            for (int i = 0; i < 50 - prev_size; i++) {
-              double next_s = car_s + (i+1)*dist_inc;
-              double next_d = 6;
-              vector<double> xy = getXY(next_s, next_d, map_waypoints_s,map_waypoints_x, map_waypoints_y);
-              next_x_vals.push_back(xy[0]);
-              next_y_vals.push_back(xy[1]);
-              //next_x_vals.push_back(car_x+(dist_inc*i)*cos(deg2rad(car_yaw)));
-              //next_y_vals.push_back(car_y+(dist_inc*i)*sin(deg2rad(car_yaw)));
-            }
-           */ 
-            // END
-            //
           	msgJson["next_x"] = next_x_vals;
           	msgJson["next_y"] = next_y_vals;
 
